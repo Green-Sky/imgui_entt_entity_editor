@@ -4,8 +4,8 @@
 #include <set>
 #include <map>
 
-#include <entt/entity/registry.hpp>
-#include <imgui/imgui.h>
+#include <entt/entt.hpp>
+#include <imgui.h>
 
 // if you have font awesome or something comparable you can set this to a wastebin
 #ifndef ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR
@@ -44,8 +44,12 @@ class ImGuiEntityEditor {
 					ImGui::TextUnformatted("editing:");
 					ImGui::SameLine();
 
-					ImGuiWidgets::Entity(e, ecs, true);
-					//ImGui::Text("id: %d, v: %d", ecs.entity(e), ecs.version(e));
+					//ImGuiWidgets::Entity(e, ecs, true);
+					if (ecs.valid(e)) {
+						ImGui::Text("id: %d, v: %d", ecs.entity(e), ecs.version(e));
+					} else {
+						ImGui::Text("INVALID ENTITY");
+					}
 					// TODO: investigate
 
 					if (ImGui::Button("New Entity")) {

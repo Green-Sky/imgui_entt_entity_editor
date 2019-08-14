@@ -20,7 +20,7 @@ namespace Widgets {
 	}
 } // Widgets
 
-entt::Registry reg;
+entt::registry reg;
 
 MM::ImGuiEntityEditor<decltype(reg)> editor;
 
@@ -31,7 +31,7 @@ editor.registerTrivial<Velocity>(reg, "Velocity");
 
 editor.registerComponentWidgetFn(
 	reg.type<Transform>(),
-	[](auto& reg, auto e) {
+	[](entt::registry& reg, auto e) {
 		auto& t = reg.get<Transform>(e);
 
 		// the "##Transform" ensures that you can use the name "x" in multiple lables
@@ -41,7 +41,7 @@ editor.registerComponentWidgetFn(
 
 editor.registerComponentWidgetFn(
 	reg.type<Velocity>(),
-	[](auto& reg, auto e) {
+	[](entt::registry& reg, auto e) {
 		auto& v = reg.get<Velocity>(e);
 		Widgets::Velocity(v);
 	});
