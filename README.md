@@ -1,6 +1,8 @@
 # imgui_entt_entity_editor
 A drop-in, single-file entity editor for EnTT, with ImGui as graphical backend.
 
+[demo-code](https://github.com/Green-Sky/imgui_entt_entity_editor_demo) [(live)](http://scam.rocks/imgui_entt_entity_editor_demo/)
+
 # example usage
 ```c++
 struct Transform {

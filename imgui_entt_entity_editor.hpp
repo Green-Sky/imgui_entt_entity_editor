@@ -149,8 +149,8 @@ class ImGuiEntityEditor {
 							}
 						}
 					}
-					ImGui::End();
 				}
+				ImGui::End();
 			}
 		}
 
