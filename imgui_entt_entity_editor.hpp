@@ -17,7 +17,7 @@ namespace MM {
 template<typename Registry>
 class ImGuiEntityEditor {
 	private:
-		using component_type = typename Registry::component_type;
+		using component_type = entt::component;
 
 		std::set<component_type> _component_types;
 		std::map<component_type, std::string> _component_names;
@@ -82,7 +82,7 @@ class ImGuiEntityEditor {
 								// delete component button
 								if (_component_destroy.count(ct)) {
 									std::string button_label = ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR "##";
-									button_label += ct;
+									button_label += entt::to_integer(ct);
 
 									if (ImGui::Button(button_label.c_str())) {
 										_component_destroy[ct](ecs, e);
@@ -97,7 +97,7 @@ class ImGuiEntityEditor {
 									label = _component_names[ct];
 								} else {
 									label = "unnamed component (";
-									label += ct;
+									label += entt::to_integer(ct);
 									label += ")";
 								}
 
@@ -133,11 +133,11 @@ class ImGuiEntityEditor {
 											label = _component_names[ct];
 										} else {
 											label = "unnamed component (";
-											label += ct;
+											label += entt::to_integer(ct);
 											label += ")";
 										}
 
-										label += "##"; label += ct; // better but optional
+										label += "##"; label += entt::to_integer(ct); // better but optional
 
 										if (ImGui::Selectable(label.c_str())) {
 											_component_create[ct](ecs, e);

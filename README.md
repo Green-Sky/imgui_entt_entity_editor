@@ -51,6 +51,6 @@ editor.registerComponentWidgetFn(
 ```
 
 # dependencies
-The editor uses the latest EnTTv3-wip interface and ImGui 1.72b but should work with prior versions. (tested with ImGui 1.68)
-To use it with EnTTv2 you have to rename the calls to the library acording to the old CamelCase.
+The editor uses (the latest) EnTTv3.1.0 interface and ImGui 1.72b but should work with prior versions. (tested with ImGui 1.68)
+To use it with EnTTv3.0.0, use the dedicated branch.
 
