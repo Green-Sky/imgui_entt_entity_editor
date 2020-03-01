@@ -95,29 +95,27 @@ public:
 				ImGui::Separator();
 
 				if (registry.valid(e)) {
-					const std::string entity_id = std::to_string(entt::to_integral(e));
+					ImGui::PushID(entt::to_integral(e));
 					std::map<ComponentTypeID, ComponentInfo> has_not;
 					for (auto& [component_type_id, ci] : component_infos) {
 						if (entityHasComponent(registry, e, component_type_id)) {
-							const std::string component_id = std::to_string(static_cast<int>(component_type_id));
-							std::string button_label = "-##" + entity_id + component_id;
-
-							if (ImGui::Button(button_label.c_str())) {
+							ImGui::PushID(component_type_id);
+							if (ImGui::Button("-")) {
 								ci.destroy(registry, e);
+								ImGui::PopID();
 								continue; // early out to prevent access to deleted data
 							} else {
 								ImGui::SameLine();
 							}
 
-							std::string label;
-							label = ci.name + "##" + entity_id + component_id;
-
-							if (ImGui::CollapsingHeader(label.c_str())) {
+							if (ImGui::CollapsingHeader(ci.name.c_str())) {
 								ImGui::Indent(30.f);
+								ImGui::PushID("Widget");
 								ci.widget(registry, e);
-
+								ImGui::PopID();
 								ImGui::Unindent(30.f);
 							}
+							ImGui::PopID();
 						} else {
 							has_not[component_type_id] = ci;
 						}
@@ -133,17 +131,16 @@ public:
 							ImGui::Separator();
 
 							for (auto& [component_type_id, ci] : has_not) {
-								const std::string component_id = std::to_string(static_cast<int>(component_type_id));
-								std::string label = ci.name;
-
-								label += "##" + entity_id + component_id;
-								if (ImGui::Selectable(label.c_str())) {
+								ImGui::PushID(component_type_id);
+								if (ImGui::Selectable(ci.name.c_str())) {
 									ci.create(registry, e);
 								}
+								ImGui::PopID();
 							}
 							ImGui::EndPopup();
 						}
 					}
+					ImGui::PopID();
 				}
 			}
 			ImGui::End();
@@ -155,7 +152,7 @@ public:
 
 // MIT License
 
-// Copyright (c) 2019 Erik Scholz, Gnik Droy
+// Copyright (c) 2020 Erik Scholz, Gnik Droy
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal

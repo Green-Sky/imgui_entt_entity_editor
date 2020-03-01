@@ -19,18 +19,17 @@ namespace MM {
 template <>
 void ComponentEditorWidget<Transform>(entt::registry& reg, entt::registry::entity_type e)
 {
-    auto& t = reg.get<Transform>(e);
-    // the "##Transform" ensures that you can use the name "x" in multiple lables
-    ImGui::DragFloat("x##Transform", &t.x, 0.1f);
-    ImGui::DragFloat("y##Transform", &t.y, 0.1f);
+	auto& t = reg.get<Transform>(e);
+	ImGui::DragFloat("x", &t.x, 0.1f);
+	ImGui::DragFloat("y", &t.y, 0.1f);
 }
 
 template <>
 void ComponentEditorWidget<Velocity>(entt::registry& reg, entt::registry::entity_type e)
 {
-    auto& v = reg.get<Velocity>(e);
-    ImGui::DragFloat("x##Velocity", &v.x, 0.1f);
-    ImGui::DragFloat("y##Velocity", &v.y, 0.1f);
+	auto& v = reg.get<Velocity>(e);
+	ImGui::DragFloat("x", &v.x, 0.1f);
+	ImGui::DragFloat("y", &v.y, 0.1f);
 }
 }
 
