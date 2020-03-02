@@ -6,48 +6,39 @@ A drop-in, single-file entity editor for EnTT, with ImGui as graphical backend.
 # example usage
 ```c++
 struct Transform {
-	float x = 0.f;
-	float y = 0.f;
+    float x = 0.f;
+    float y = 0.f;
 };
 
 struct Velocity {
-	float x = 0.f;
-	float y = 0.f;
+    float x = 0.f;
+    float y = 0.f;
 };
 
-namespace Widgets {
-	void Velocity(::Velocity& v) {
-		ImGui::DragFloat("x##Velocity", &v.x, 0.1f);
-		ImGui::DragFloat("y##Velocity", &v.y, 0.1f);
-	}
-} // Widgets
+namespace MM {
+template <>
+void ComponentEditorWidget<Transform>(entt::registry& reg, entt::registry::entity_type e)
+{
+	auto& t = reg.get<Transform>(e);
+	ImGui::DragFloat("x", &t.x, 0.1f);
+	ImGui::DragFloat("y", &t.y, 0.1f);
+}
+
+template <>
+void ComponentEditorWidget<Velocity>(entt::registry& reg, entt::registry::entity_type e)
+{
+	auto& v = reg.get<Velocity>(e);
+	ImGui::DragFloat("x", &v.x, 0.1f);
+	ImGui::DragFloat("y", &v.y, 0.1f);
+}
+}
+
 
 entt::registry reg;
+MM::EntityEditor<entt::entity> editor;
 
-MM::ImGuiEntityEditor<decltype(reg)> editor;
-
-// "registerTrivial" registers the type, name, create and destroy functions for trivialy costructable(and destroyable) types.
-// you just need to provide a "widget" function if you use this method.
-editor.registerTrivial<Transform>(reg, "Transform");
-editor.registerTrivial<Velocity>(reg, "Velocity");
-
-editor.registerComponentWidgetFn(
-	reg.type<Transform>(),
-	[](entt::registry& reg, auto e) {
-		auto& t = reg.get<Transform>(e);
-
-		// the "##Transform" ensures that you can use the name "x" in multiple lables
-		ImGui::DragFloat("x##Transform", &t.x, 0.1f);
-		ImGui::DragFloat("y##Transform", &t.y, 0.1f);
-	});
-
-editor.registerComponentWidgetFn(
-	reg.type<Velocity>(),
-	[](entt::registry& reg, auto e) {
-		auto& v = reg.get<Velocity>(e);
-		Widgets::Velocity(v);
-	});
-
+editor.registerComponent<Transform>("Transform");
+editor.registerComponent<Velocity>("Velocity");
 ```
 
 # dependencies

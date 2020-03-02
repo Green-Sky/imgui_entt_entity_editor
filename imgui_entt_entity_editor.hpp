@@ -1,207 +1,158 @@
 // for the license, see the end of the file
 #pragma once
 
-#include <set>
 #include <map>
+#include <set>
 
 #include <entt/entt.hpp>
 #include <imgui.h>
 
-// if you have font awesome or something comparable you can set this to a wastebin
-#ifndef ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR
-	#define ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR "-"
-#endif
-
 namespace MM {
 
-template<typename Registry>
-class ImGuiEntityEditor {
-	private:
-		using component_type = entt::component;
+template <class Component, class EntityType>
+void ComponentEditorWidget(entt::basic_registry<EntityType>& registry, EntityType entity) {}
 
-		std::set<component_type> _component_types;
-		std::map<component_type, std::string> _component_names;
-		std::map<component_type, void(*)(Registry&, typename Registry::entity_type)> _component_widget;
-		std::map<component_type, void(*)(Registry&, typename Registry::entity_type)> _component_create;
-		std::map<component_type, void(*)(Registry&, typename Registry::entity_type)> _component_destroy;
+template <class Component, class EntityType>
+void ComponentAddAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+{
+	registry.template assign<Component>(entity);
+}
 
-	public:
-		bool show_window = true;
+template <class Component, class EntityType>
+void ComponentRemoveAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+{
+	registry.template remove<Component>(entity);
+}
 
-	private:
-		inline bool entity_has_component(Registry& ecs, typename Registry::entity_type& e, component_type ct) {
-			component_type type[] = { ct };
-			auto rv = ecs.runtime_view(std::cbegin(type), std::cend(type));
-			return rv.contains(e);
-		}
+template <class EntityType>
+class EntityEditor {
+public:
+	using Registry = entt::basic_registry<EntityType>;
 
-	public:
-		// calls all the ImGui functions
-		// call this every frame
-		void renderImGui(Registry& ecs, typename Registry::entity_type& e) {
-			if (show_window) {
-				if(ImGui::Begin("Entity Editor", &show_window)) {
-					ImGui::TextUnformatted("editing:");
-					ImGui::SameLine();
+	struct ComponentInfo {
+		using Callback = std::function<void(Registry&, EntityType)>;
+		std::string name;
+		Callback widget, create, destroy;
+	};
 
-					//ImGuiWidgets::Entity(e, ecs, true);
-					if (ecs.valid(e)) {
-						ImGui::Text("id: %d, v: %d", ecs.entity(e), ecs.version(e));
-					} else {
-						ImGui::Text("INVALID ENTITY");
-					}
-					// TODO: investigate
+	bool show_window = true;
 
-					if (ImGui::Button("New Entity")) {
-						e = ecs.create();
-					}
+private:
+	using ComponentTypeID = ENTT_ID_TYPE;
 
-					// TODO: implemnt cloning by ether forking entt or implementing function lists...
-					//ImGui::SameLine();
-					//ImGui::TextUnformatted(ICON_II_ARCHIVE " drop to clone Entity");
-					//if (ImGui::BeginDragDropTarget()) {
-						//if (auto* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_MM_ENTITY)) {
-							//auto clone_e = *(MM::FrameworkConfig::Entity*)payload->Data;
-							//e = ecs.clone(clone_e);
-						//}
-						//ImGui::EndDragDropTarget();
-					//}
+	std::map<ComponentTypeID, ComponentInfo> component_infos;
 
-					ImGui::Separator();
+	bool entityHasComponent(Registry& registry, EntityType& entity, ComponentTypeID type_id)
+	{
+		ComponentTypeID type[] = { type_id };
+		return registry.runtime_view(std::cbegin(type), std::cend(type)).contains(entity);
+	}
 
-					// TODO: needed?
-					if (!ecs.valid(e)) {
-						e = entt::null;
-					}
+public:
+	template <class Component>
+	ComponentInfo& registerComponent(const ComponentInfo& component_info)
+	{
+		auto index = entt::type_info<Component>::id();
+		auto [it, insert_result] = component_infos.insert_or_assign(index, component_info);
+		assert(insert_result);
+		return std::get<ComponentInfo>(*it);
+	}
 
-					if (e != entt::null) {
-						std::vector<component_type> has_not;
-						for (auto ct : _component_types) {
-							if (entity_has_component(ecs, e, ct)) {
+	template <class Component>
+	ComponentInfo& registerComponent(const std::string& name, typename ComponentInfo::Callback widget)
+	{
+		return registerComponent<Component>(ComponentInfo{
+			name,
+			widget,
+			ComponentAddAction<Component, EntityType>,
+			ComponentRemoveAction<Component, EntityType>,
+		});
+	}
 
-								// delete component button
-								if (_component_destroy.count(ct)) {
-									std::string button_label = ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR "##";
-									button_label += entt::to_integer(ct);
+	template <class Component>
+	ComponentInfo& registerComponent(const std::string& name)
+	{
+		return registerComponent<Component>(name, ComponentEditorWidget<Component, EntityType>);
+	}
 
-									if (ImGui::Button(button_label.c_str())) {
-										_component_destroy[ct](ecs, e);
-										continue; // early out to prevent access to deleted data
-									} else {
-										ImGui::SameLine();
-									}
-								}
+	void render(Registry& registry, EntityType& e)
+	{
+		if (show_window) {
+			if (ImGui::Begin("Entity Editor", &show_window)) {
+				ImGui::TextUnformatted("Editing:");
+				ImGui::SameLine();
 
-								std::string label;
-								if (_component_names.count(ct)) {
-									label = _component_names[ct];
-								} else {
-									label = "unnamed component (";
-									label += entt::to_integer(ct);
-									label += ")";
-								}
-
-								if (ImGui::CollapsingHeader(label.c_str())) {
-									ImGui::Indent(30.f);
-
-									if (_component_widget.count(ct)) {
-										_component_widget[ct](ecs, e);
-									} else {
-										ImGui::TextDisabled("missing widget to display component!");
-									}
-
-									ImGui::Unindent(30.f);
-								}
-							} else {
-								has_not.push_back(ct);
-							}
-						}
-
-						if (!has_not.empty()) {
-							if (ImGui::Button("+ Add Component")) {
-								ImGui::OpenPopup("add component");
-							}
-
-							if (ImGui::BeginPopup("add component")) {
-								ImGui::TextUnformatted("available:");
-								ImGui::Separator();
-
-								for (auto ct : has_not) {
-									if (_component_create.count(ct)) {
-										std::string label;
-										if (_component_names.count(ct)) {
-											label = _component_names[ct];
-										} else {
-											label = "unnamed component (";
-											label += entt::to_integer(ct);
-											label += ")";
-										}
-
-										label += "##"; label += entt::to_integer(ct); // better but optional
-
-										if (ImGui::Selectable(label.c_str())) {
-											_component_create[ct](ecs, e);
-										}
-									}
-								}
-
-								ImGui::EndPopup();
-							}
-						}
-					}
+				if (registry.valid(e)) {
+					ImGui::Text("ID: %d", entt::to_integral(e));
+				} else {
+					ImGui::Text("Invalid Entity");
 				}
-				ImGui::End();
+
+				if (ImGui::Button("New Entity")) {
+					e = registry.create();
+				}
+
+				ImGui::Separator();
+
+				if (registry.valid(e)) {
+					ImGui::PushID(entt::to_integral(e));
+					std::map<ComponentTypeID, ComponentInfo> has_not;
+					for (auto& [component_type_id, ci] : component_infos) {
+						if (entityHasComponent(registry, e, component_type_id)) {
+							ImGui::PushID(component_type_id);
+							if (ImGui::Button("-")) {
+								ci.destroy(registry, e);
+								ImGui::PopID();
+								continue; // early out to prevent access to deleted data
+							} else {
+								ImGui::SameLine();
+							}
+
+							if (ImGui::CollapsingHeader(ci.name.c_str())) {
+								ImGui::Indent(30.f);
+								ImGui::PushID("Widget");
+								ci.widget(registry, e);
+								ImGui::PopID();
+								ImGui::Unindent(30.f);
+							}
+							ImGui::PopID();
+						} else {
+							has_not[component_type_id] = ci;
+						}
+					}
+
+					if (!has_not.empty()) {
+						if (ImGui::Button("+ Add Component")) {
+							ImGui::OpenPopup("Add Component");
+						}
+
+						if (ImGui::BeginPopup("Add Component")) {
+							ImGui::TextUnformatted("Available:");
+							ImGui::Separator();
+
+							for (auto& [component_type_id, ci] : has_not) {
+								ImGui::PushID(component_type_id);
+								if (ImGui::Selectable(ci.name.c_str())) {
+									ci.create(registry, e);
+								}
+								ImGui::PopID();
+							}
+							ImGui::EndPopup();
+						}
+					}
+					ImGui::PopID();
+				}
 			}
+			ImGui::End();
 		}
-
-		// call this (or registerTrivial) before any of the other register functions
-		void registerComponentType(component_type ct) {
-			if (!_component_types.count(ct)) {
-				_component_types.emplace(ct);
-			}
-		}
-
-		// register a name to be displayed for the component
-		void registerComponentName(component_type ct, const std::string& name) {
-			_component_names[ct] = name;
-		}
-
-		// register a callback to a function displaying a component. using imgui
-		void registerComponentWidgetFn(component_type ct, void(*fn)(Registry&, typename Registry::entity_type)) {
-			_component_widget[ct] = fn;
-		}
-
-		// register a callback to create a component, if none, you wont be able to create it in the editor
-		void registerComponentCreateFn(component_type ct, void(*fn)(Registry&, typename Registry::entity_type)) {
-			_component_create[ct] = fn;
-		}
-
-		// register a callback to delete a component, if none, you wont be able to delete it in the editor
-		void registerComponentDestroyFn(component_type ct, void(*fn)(Registry&, typename Registry::entity_type)) {
-			_component_destroy[ct] = fn;
-		}
-
-		// registers the component_type, name, create and destroy for rather trivial types
-		template<typename T>
-		void registerTrivial(Registry& ecs, const std::string& name) {
-			registerComponentType(ecs.template type<T>());
-			registerComponentName(ecs.template type<T>(), name);
-			registerComponentCreateFn(ecs.template type<T>(),
-				[](Registry& ecs, typename Registry::entity_type e) {
-					ecs.template assign<T>(e);
-				});
-			registerComponentDestroyFn(ecs.template type<T>(),
-				[](Registry& ecs, typename Registry::entity_type e) {
-					ecs.template remove<T>(e);
-				});
-		}
+	}
 };
 
 } // MM
 
 // MIT License
 
-// Copyright (c) 2019 Erik Scholz
+// Copyright (c) 2020 Erik Scholz, Gnik Droy
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
