@@ -15,7 +15,7 @@ void ComponentEditorWidget(entt::basic_registry<EntityType>& registry, EntityTyp
 template <class Component, class EntityType>
 void ComponentAddAction(entt::basic_registry<EntityType>& registry, EntityType entity)
 {
-	registry.template assign<Component>(entity);
+	registry.template emplace<Component>(entity);
 }
 
 template <class Component, class EntityType>
