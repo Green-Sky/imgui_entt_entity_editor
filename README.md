@@ -3,7 +3,14 @@ A drop-in, single-file entity editor for EnTT, with ImGui as graphical backend.
 
 [demo-code](https://github.com/Green-Sky/imgui_entt_entity_editor_demo) [(live)](http://scam.rocks/imgui_entt_entity_editor_demo/)
 
-![screenshot](https://github.com/Green-Sky/imgui_entt_entity_editor_demo/blob/master/imgui_entt_entity_editor_screenshot0.png)
+Editor
+![screenshot0](https://github.com/Green-Sky/imgui_entt_entity_editor_demo/blob/master/imgui_entt_entity_editor_screenshot0.png)
+
+Editor with Entiy-List
+![screenshot1](https://github.com/Green-Sky/imgui_entt_entity_editor_demo/blob/master/imgui_entt_entity_editor_screenshot1.png)
+
+With Drag and Drop
+![vid](https://github.com/Green-Sky/imgui_entt_entity_editor_demo/blob/master/imgui_entt_entity_editor_dnd0.gif)
 
 # example usage
 ```c++
@@ -44,8 +51,8 @@ editor.registerComponent<Velocity>("Velocity");
 ```
 
 # dependencies
-The editor uses (the latest) EnTTv3.4.0 interface and ImGui 1.72b but should work with prior versions. (tested with ImGui 1.68)
+The editor uses EnTTv3.4.0 interface and ImGui. (tested with ImGui 1.68, 1.72b, 1.75, 1.78)
 To use it with EnTTv3.0.0, use the dedicated branch.
 For specific EnTT version check the tags.
-Tested against EnTT 3.1.0, 3.1.1, 3.2.0, 3.2.1, 3.2.2, 3.3.x, 3.4.0 .
+Releases available for EnTT 3.1.0, 3.1.1, 3.2.0, 3.2.1, 3.2.2, 3.3.x, 3.4.0 .
 
