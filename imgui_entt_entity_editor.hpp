@@ -23,7 +23,7 @@ namespace MM {
 template <class EntityType>
 inline void EntityWidget(EntityType& e, entt::basic_registry<EntityType>& reg, bool dropTarget = false)
 {
-	ImGui::PushID(entt::to_integral(e));
+	ImGui::PushID(static_cast<int>(entt::to_integral(e)));
 
 	if (reg.valid(e)) {
 		ImGui::Text("ID: %d", entt::to_integral(e));
@@ -51,7 +51,7 @@ inline void EntityWidget(EntityType& e, entt::basic_registry<EntityType>& reg, b
 }
 
 template <class Component, class EntityType>
-void ComponentEditorWidget([[maybe_unused]] entt::basic_registry<EntityType>& registry, EntityType entity) {}
+void ComponentEditorWidget([[maybe_unused]] entt::basic_registry<EntityType>& registry, [[maybe_unused]] EntityType entity) {}
 
 template <class Component, class EntityType>
 void ComponentAddAction(entt::basic_registry<EntityType>& registry, EntityType entity)
@@ -69,6 +69,7 @@ template <class EntityType>
 class EntityEditor {
 public:
 	using Registry = entt::basic_registry<EntityType>;
+	using ComponentTypeID = ENTT_ID_TYPE;
 
 	struct ComponentInfo {
 		using Callback = std::function<void(Registry&, EntityType)>;
@@ -79,8 +80,6 @@ public:
 	bool show_window = true;
 
 private:
-	using ComponentTypeID = ENTT_ID_TYPE;
-
 	std::map<ComponentTypeID, ComponentInfo> component_infos;
 
 	bool entityHasComponent(Registry& registry, EntityType& entity, ComponentTypeID type_id)
@@ -139,9 +138,9 @@ public:
 			ImGui::SameLine();
 
 			// red button
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65, 0.15, 0.15, 1));
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8, 0.3, 0.3, 1));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 0.2, 0.2, 1));
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.65f, 0.15f, 0.15f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.3f, 0.3f, 1.f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.f, 0.2f, 0.2f, 1.f));
 			if (ImGui::Button("Destroy")) {
 				registry.destroy(e);
 				e = entt::null;
@@ -152,7 +151,7 @@ public:
 		ImGui::Separator();
 
 		if (registry.valid(e)) {
-			ImGui::PushID(entt::to_integral(e));
+			ImGui::PushID(static_cast<int>(entt::to_integral(e)));
 			std::map<ComponentTypeID, ComponentInfo> has_not;
 			for (auto& [component_type_id, ci] : component_infos) {
 				if (entityHasComponent(registry, e, component_type_id)) {
