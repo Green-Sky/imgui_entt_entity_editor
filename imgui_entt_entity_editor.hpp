@@ -4,6 +4,7 @@
 #include <map>
 #include <set>
 #include <functional>
+#include <string>
 
 #include <entt/entt.hpp>
 #include <imgui.h>
@@ -69,7 +70,7 @@ template <class EntityType>
 class EntityEditor {
 public:
 	using Registry = entt::basic_registry<EntityType>;
-	using ComponentTypeID = ENTT_ID_TYPE;
+	using ComponentTypeID = entt::id_type;
 
 	struct ComponentInfo {
 		using Callback = std::function<void(Registry&, EntityType)>;
@@ -92,10 +93,10 @@ public:
 	template <class Component>
 	ComponentInfo& registerComponent(const ComponentInfo& component_info)
 	{
-		auto index = entt::type_info<Component>::id();
-		[[maybe_unused]] auto [it, insert_result] = component_infos.insert_or_assign(index, component_info);
-		MM_IEEE_ASSERT(insert_result);
-		return std::get<ComponentInfo>(*it);
+		auto index = entt::type_hash<Component>::value();
+		auto insert_info = component_infos.insert_or_assign(index, component_info);
+		MM_IEEE_ASSERT(insert_info.second);
+		return std::get<ComponentInfo>(*insert_info.first);
 	}
 
 	template <class Component>
@@ -233,7 +234,7 @@ public:
 			});
 		} else {
 			auto view = registry.runtime_view(comp_list.begin(), comp_list.end());
-			ImGui::Text("%lu Entities Matching:", view.size());
+			ImGui::Text("%lu Entities Matching:", view.size_hint());
 
 			if (ImGui::BeginChild("entity list")) {
 				for (auto e : view) {
@@ -286,7 +287,8 @@ public:
 
 // MIT License
 
-// Copyright (c) 2020 Erik Scholz, Gnik Droy
+// Copyright (c) 2019-2021 Erik Scholz
+// Copyright (c) 2020 Gnik Droy
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
