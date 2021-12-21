@@ -129,11 +129,19 @@ public:
 		if (registry.valid(e)) {
 			ImGui::SameLine();
 
-			// clone would go here
-			//if (ImGui::Button("Clone")) {
-				//auto old_e = e;
-				//e = registry.create();
-			//}
+			if (ImGui::Button("Clone")) {
+				auto old_e = e;
+				e = registry.create();
+
+				// create a copy of an entity component by component
+				for (auto &&curr: registry.storage()) {
+					if (auto &storage = curr.second; storage.contains(old_e)) {
+						// TODO: do something with the return value. returns false on failure.
+						storage.emplace(e, storage.get(old_e));
+					}
+				}
+			}
+			ImGui::SameLine();
 
 			ImGui::Dummy({10, 0}); // space destroy a bit, to not accidentally click it
 			ImGui::SameLine();
@@ -229,8 +237,10 @@ public:
 
 		if (comp_list.empty()) {
 			ImGui::Text("Orphans:");
-			registry.orphans([&registry](auto e){
-				MM_IEEE_ENTITY_WIDGET(e, registry, false);
+			registry.each([&registry](auto e){
+				if (registry.orphan(e)) {
+					MM_IEEE_ENTITY_WIDGET(e, registry, false);
+				}
 			});
 		} else {
 			auto view = registry.runtime_view(comp_list.begin(), comp_list.end());
