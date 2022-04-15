@@ -85,8 +85,8 @@ private:
 
 	bool entityHasComponent(Registry& registry, EntityType& entity, ComponentTypeID type_id)
 	{
-		ComponentTypeID type[] = { type_id };
-		return registry.runtime_view(std::cbegin(type), std::cend(type)).contains(entity);
+		const auto storage_it = registry.storage(type_id);
+		return storage_it != registry.storage().end() && storage_it->second.contains(entity);
 	}
 
 public:
@@ -243,7 +243,16 @@ public:
 				}
 			});
 		} else {
-			auto view = registry.runtime_view(comp_list.begin(), comp_list.end());
+			entt::basic_runtime_view<entt::basic_sparse_set<EntityType>> view{};
+			for (const auto type : comp_list) {
+				auto storage_it = registry.storage(type);
+				if (storage_it != registry.storage().end()) {
+					view.iterate(registry.storage(type)->second);
+				}
+			}
+
+			// TODO: add support for exclude
+
 			ImGui::Text("%lu Entities Matching:", view.size_hint());
 
 			if (ImGui::BeginChild("entity list")) {
@@ -297,7 +306,7 @@ public:
 
 // MIT License
 
-// Copyright (c) 2019-2021 Erik Scholz
+// Copyright (c) 2019-2022 Erik Scholz
 // Copyright (c) 2020 Gnik Droy
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
