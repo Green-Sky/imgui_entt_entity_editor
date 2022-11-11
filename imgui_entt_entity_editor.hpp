@@ -85,8 +85,8 @@ private:
 
 	bool entityHasComponent(Registry& registry, EntityType& entity, ComponentTypeID type_id)
 	{
-		const auto storage_it = registry.storage(type_id);
-		return storage_it != registry.storage().end() && storage_it->second.contains(entity);
+		const auto* storage_ptr = registry.storage(type_id);
+		return storage_ptr != nullptr && storage_ptr->contains(entity);
 	}
 
 public:
@@ -243,11 +243,11 @@ public:
 				}
 			});
 		} else {
-			entt::basic_runtime_view<entt::basic_sparse_set<EntityType>> view{};
+			entt::runtime_view view{};
 			for (const auto type : comp_list) {
-				auto storage_it = registry.storage(type);
-				if (storage_it != registry.storage().end()) {
-					view.iterate(registry.storage(type)->second);
+				auto* storage_ptr = registry.storage(type);
+				if (storage_ptr != nullptr) {
+					view.iterate(*storage_ptr);
 				}
 			}
 
