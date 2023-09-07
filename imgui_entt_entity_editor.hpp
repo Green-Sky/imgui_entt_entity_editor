@@ -137,7 +137,7 @@ public:
 				for (auto &&curr: registry.storage()) {
 					if (auto &storage = curr.second; storage.contains(old_e)) {
 						// TODO: do something with the return value. returns false on failure.
-						storage.emplace(e, storage.get(old_e));
+						storage.push(e, storage.value(old_e));
 					}
 				}
 			}
@@ -237,11 +237,11 @@ public:
 
 		if (comp_list.empty()) {
 			ImGui::Text("Orphans:");
-			registry.each([&registry](auto e){
+			for (EntityType e : registry.template storage<EntityType>()) {
 				if (registry.orphan(e)) {
 					MM_IEEE_ENTITY_WIDGET(e, registry, false);
 				}
-			});
+			}
 		} else {
 			entt::runtime_view view{};
 			for (const auto type : comp_list) {
@@ -261,17 +261,6 @@ public:
 				}
 			}
 			ImGui::EndChild();
-		}
-	}
-
-	[[deprecated("Use renderEditor() instead. And manage the window yourself.")]]
-	void render(Registry& registry, EntityType& e)
-	{
-		if (show_window) {
-			if (ImGui::Begin("Entity Editor", &show_window)) {
-				renderEditor(registry, e);
-			}
-			ImGui::End();
 		}
 	}
 
