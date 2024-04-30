@@ -243,7 +243,7 @@ public:
 				}
 			}
 		} else {
-			entt::runtime_view view{};
+			entt::basic_runtime_view<entt::basic_sparse_set<EntityType>> view{};
 			for (const auto type : comp_list) {
 				auto* storage_ptr = registry.storage(type);
 				if (storage_ptr != nullptr) {
